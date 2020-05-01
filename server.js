@@ -5,6 +5,7 @@ var authJwtController = require('./auth_jwt');
 var User = require('./Users');
 var jwt = require('jsonwebtoken');
 var cors = require('cors');
+var Review = require('./Reviews');
 var Movie = require('./Movies');
 
 var app = express();
@@ -137,23 +138,68 @@ router.route('/movie')
     })
 
     .get(authJwtController.isAuthenticated, function (req, res) {
-        Movie.find(function (err, movie) {
-            if(err) res.send(err);
-            res.json(movie);
-        })
+        if (req.query.reviews == "true") {
+            Movie.aggregate()
+                .lookup({
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'movieID',
+                    as: 'Reviews'
+                })
+
+                .exec(function (err, movie) {
+                    if (err)
+                        res.send(err);
+                    else res.json(movie);
+                })
+        }
+
+        else {
+            Movie.find(function (err, movie) {
+                if (err)
+                    res.send(err);
+                else res.json(movie);
+            })
+        }
     });
 
-router.route('/movie/:movieId')
-    .get(authJwtController.isAuthenticated, function (req, res) {
-        var id = req.params.movieId;
-        Movie.findById(id, function(err, movie) {
-            if (err) res.send(err);
+router.route('/review')
+    .post(authJwtController.isAuthenticated, function (req, res) {
+        console.log(req.body);
 
-            var movieJson = JSON.stringify(movie);
-            // return that user
-            res.json(movie);
+        var id = req.body.movieID
+        Movie.findById(id, function (err, movie) {
+            if (err) res.json({message: "Movie does not exist"});
+
+            else {
+                if (!req.body.name || !req.body.review || !req.body.rating || !req.body.movieID) {
+                res.status(400).send({success: false, message: 'Missing values'})
+                }
+
+                else {
+                    var review = new Review();
+                    review.name = req.body.name
+                    review.review = req.body.review
+                    review.rating = req.body.rating
+                    review.movieID = req.body.movieID
+
+                    review.save(function (err) {
+                        if (err) {
+                            // duplicate entry
+                            if (err.code == 11000)
+                                res.json({
+                                    success: false,
+                                    message: 'A review for this movie and name already exists. '
+                                });
+                            else
+                                return res.send(err);
+                        } else res.json({success: true, message: 'Review created!'});
+                    });
+                }
+            }
         });
     });
+
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
