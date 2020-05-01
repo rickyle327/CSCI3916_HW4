@@ -97,7 +97,7 @@ router.post('/signin', function(req, res) {
     });
 });
 
-router.route('/movie')
+router.route('/movies')
     .post(authJwtController.isAuthenticated, function (req, res) {
         console.log(req.body);
         var movie = new Movie();
@@ -161,6 +161,27 @@ router.route('/movie')
                 else res.json(movie);
             })
         }
+    });
+
+router.route('/movies/:movieId')
+    .get(authJwtController.isAuthenticated, function (req, res) {
+        var id = req.params.movieId;
+        Movie.findById(id, function(err, movie) {
+            if (err) res.send(err);
+            Movie.aggregate()
+                .lookup({
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'movieID',
+                    as: 'Reviews'
+                })
+
+                .exec(function (err, movie) {
+                    if (err)
+                        res.send(err);
+                    else res.json(movie);
+                })
+        });
     });
 
 router.route('/review')
