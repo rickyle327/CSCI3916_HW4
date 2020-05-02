@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
 var authJwtController = require('./auth_jwt');
+var mongoose = require('mongoose');
 var User = require('./Users');
 var jwt = require('jsonwebtoken');
 var cors = require('cors');
@@ -146,7 +147,7 @@ router.route('/movies')
                     from: 'reviews',
                     localField: '_id',
                     foreignField: 'movieID',
-                    as: 'Reviews'
+                    as: 'reviews'
                 })
 
                 .exec(function (err, movie) {
@@ -190,7 +191,6 @@ router.route('/movies/:movieId')
         if (req.query.reviews == "true") {
             var id = req.params.movieId;
 
-            if (err) res.send(err);
             Movie.aggregate()
                 .match({
                     _id: mongoose.Types.ObjectId(id
@@ -200,7 +200,7 @@ router.route('/movies/:movieId')
                     from: 'reviews',
                     localField: '_id',
                     foreignField: 'movieID',
-                    as: 'Reviews'
+                    as: 'reviews'
                 })
 
                 .exec(function (err, movie) {
