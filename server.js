@@ -244,7 +244,7 @@ router.route('/movies/:movieId')
         }
     });
 
-router.route('/review')
+router.route('/reviews')
     .post(authJwtController.isAuthenticated, function (req, res) {
         console.log(req.body);
 
