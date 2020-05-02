@@ -167,10 +167,7 @@ router.route('/movies')
                         movie.sort((a,b) => {
                             return b.avgRating - a.avgRating;
                         });
-                        return res.status(200).json({
-                            success: true,
-                            result: movie
-                        });
+                        return res.status(200).json(movie);
                     }
 
                     else return res.status(400).json({ success: false, message: "Movie not found."});
