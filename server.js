@@ -253,7 +253,7 @@ router.route('/reviews')
             if (err) res.json({message: "Movie does not exist"});
 
             else {
-                if (!req.body.name || !req.body.review || !req.body.rating || !req.body.movieID) {
+                if (!req.body.name || !req.body.quote || !req.body.rating || !req.body.movieID) {
                 res.status(400).send({success: false, message: 'Missing values'})
                 }
 
