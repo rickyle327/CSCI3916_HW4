@@ -231,7 +231,16 @@ router.route('/movies/:movieId')
         }
 
         else {
-
+            var id = req.params.movieId;
+            Movie.findById(id, function(err, movie) {
+                if (err) res.send(err);
+                if (movie) {
+                    return res.status(200).json({ success: true, result: movie });
+                }
+                else {
+                    return res.status(400).json({ success: false, message: "Movie not found" });
+                }
+            });
         }
     });
 
