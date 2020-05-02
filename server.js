@@ -260,7 +260,7 @@ router.route('/reviews')
                 else {
                     var review = new Review();
                     review.name = req.body.name
-                    review.review = req.body.review
+                    review.quote = req.body.quote
                     review.rating = req.body.rating
                     review.movieID = req.body.movieID
 
