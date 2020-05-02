@@ -187,10 +187,15 @@ router.route('/movies')
 
 router.route('/movies/:movieId')
     .get(authJwtController.isAuthenticated, function (req, res) {
-        var id = req.params.movieId;
-        Movie.findById(id, function(err, movie) {
+        if (req.query.reviews == "true") {
+            var id = req.params.movieId;
+
             if (err) res.send(err);
             Movie.aggregate()
+                .match({
+                    _id: mongoose.Types.ObjectId(id
+                    )})
+
                 .lookup({
                     from: 'reviews',
                     localField: '_id',
@@ -199,11 +204,35 @@ router.route('/movies/:movieId')
                 })
 
                 .exec(function (err, movie) {
-                    if (err)
-                        res.send(err);
-                    else res.json(movie);
+                    if (err) return res.send(err);
+                    if (movie && movie.length > 0) {
+                        // Add avgRating
+                        for (let j = 0; j < movie.length; j++) {
+                            let total = 0;
+                            for (let i = 0; i < movie[j].reviews.length; i++) {
+                                total += movie[j].reviews[i].rating;
+                            }
+                            if (movie[j].reviews.length > 0) {
+                                movie[j] = Object.assign({}, movie[j],
+                                    {avgRating: (total/movie[j].reviews.length).toFixed(1)});
+                            }
+                        }
+                        movie.sort((a,b) => {
+                            return b.avgRating - a.avgRating;
+                        });
+                        return res.status(200).json({
+                            success: true,
+                            result: movie
+                        });
+                    }
+                    else return res.status(400).json({ success: false, message: "Movie not found."});
                 })
-        });
+
+        }
+
+        else {
+
+        }
     });
 
 router.route('/review')
